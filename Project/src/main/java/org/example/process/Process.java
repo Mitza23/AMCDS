@@ -4,9 +4,11 @@ import lombok.Getter;
 import org.example.abstractions.Abstraction;
 import org.example.abstractions.AbstractionType;
 import org.example.abstractions.Application;
+import org.example.abstractions.NNAtomicRegister;
 import org.example.communication.CommunicationProtocol;
 import org.example.communication.MessageReceiver;
 import org.example.communication.MessageSender;
+import org.example.util.AbstractionIdUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,8 +48,13 @@ public class Process implements Runnable, Observer {
                 try {
                     CommunicationProtocol.Message message = messageQueue.take();
                     log.info("Handling {}; FromAbstractionId: {}; ToAbstractionId: {}", message.getType(), message.getFromAbstractionId(), message.getToAbstractionId());
+                    if (!abstractions.containsKey(message.getToAbstractionId())) {
+                        if (message.getToAbstractionId().contains(AbstractionType.NNAR.getId())) {
+                            registerAbstraction(new NNAtomicRegister(AbstractionIdUtil.getNamedAncestorAbstractionId(message.getToAbstractionId()), this));
+                        }
+                    }
                     if (abstractions.containsKey(message.getToAbstractionId())) {
-                        if (!abstractions.get(message.getToAbstractionId()).handle(message)) {
+                        if (!abstractions.get(message.getToAbstractionId()).handle(message) && requeueMessage(message)) {
                             addMessageToQueue(message);
                         }
                     } else {
@@ -87,6 +94,12 @@ public class Process implements Runnable, Observer {
         } catch (InterruptedException e) {
             log.error("Error adding message to queue.");
         }
+    }
+
+    private boolean requeueMessage(CommunicationProtocol.Message message) {
+        return CommunicationProtocol.Message.Type.PL_DELIVER.equals(message.getType()) &&
+                (CommunicationProtocol.Message.Type.NNAR_INTERNAL_VALUE.equals(message.getPlDeliver().getMessage().getType()) ||
+                        CommunicationProtocol.Message.Type.NNAR_INTERNAL_ACK.equals(message.getPlDeliver().getMessage().getType()));
     }
 
 
