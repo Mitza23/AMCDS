@@ -7,7 +7,12 @@ public enum AbstractionType {
     PL("pl"),
     BEB("beb"),
     APP("app"),
-    NNAR("nnar");
+    NNAR("nnar"),
+    EPFD("epfd"),
+    ELD("eld"),
+    EP("ep"),
+    EC("ec"),
+    UC("uc");
 
 
     private final String id;
