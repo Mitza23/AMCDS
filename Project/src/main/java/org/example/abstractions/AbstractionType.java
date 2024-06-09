@@ -14,10 +14,9 @@ public enum AbstractionType {
     EC("ec"),
     UC("uc");
 
-
     private final String id;
 
-    private AbstractionType(String id) {
+    AbstractionType(String id) {
         this.id = id;
     }
 }
