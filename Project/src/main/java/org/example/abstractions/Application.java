@@ -28,6 +28,9 @@ public class Application extends Abstraction {
             case NNAR_WRITE_RETURN:
                 handleNnarWriteReturn(message.getNnarWriteReturn(), message.getFromAbstractionId());
                 return true;
+            case UC_DECIDE:
+                handleUcDecide(message.getUcDecide());
+                return true;
         }
         return false;
     }
@@ -42,6 +45,9 @@ public class Application extends Abstraction {
                 return true;
             case APP_WRITE:
                 handleAppWrite(message.getAppWrite());
+                return true;
+            case APP_PROPOSE:
+                handleAppPropose(message.getAppPropose());
                 return true;
         }
         return false;
@@ -157,6 +163,45 @@ public class Application extends Abstraction {
                 .build();
 
         triggerPlSend(appWriteReturnMessage);
+    }
+
+    private void handleAppPropose(CommunicationProtocol.AppPropose appPropose) {
+        // register app.uc[topic] abstraction
+        process.registerAbstraction(new UniformConsensus(AbstractionIdUtil.getNamedAbstractionId(this.abstractionId, AbstractionType.UC, appPropose.getTopic()), process));
+
+        CommunicationProtocol.UcPropose ucPropose = CommunicationProtocol.UcPropose
+                .newBuilder()
+                .setValue(appPropose.getValue())
+                .build();
+
+        CommunicationProtocol.Message ucProposeMessage = CommunicationProtocol.Message
+                .newBuilder()
+                .setType(CommunicationProtocol.Message.Type.UC_PROPOSE)
+                .setUcPropose(ucPropose)
+                .setFromAbstractionId(this.abstractionId)
+                .setToAbstractionId(AbstractionIdUtil.getNamedAbstractionId(this.abstractionId, AbstractionType.UC, appPropose.getTopic()))
+                .setSystemId(process.getSystemId())
+                .build();
+
+        process.addMessageToQueue(ucProposeMessage);
+    }
+
+    private void handleUcDecide(CommunicationProtocol.UcDecide ucDecide) {
+        CommunicationProtocol.AppDecide appDecide = CommunicationProtocol.AppDecide
+                .newBuilder()
+                .setValue(ucDecide.getValue())
+                .build();
+
+        CommunicationProtocol.Message appDecideMessage = CommunicationProtocol.Message
+                .newBuilder()
+                .setType(CommunicationProtocol.Message.Type.APP_DECIDE)
+                .setAppDecide(appDecide)
+                .setFromAbstractionId(this.abstractionId)
+                .setToAbstractionId(AbstractionIdUtil.HUB_ID)
+                .setSystemId(process.getSystemId())
+                .build();
+
+        triggerPlSend(appDecideMessage);
     }
 
     private void triggerPlSend(CommunicationProtocol.Message message) {

@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="Main" type="Application" factoryName="Application" nameIsGenerated="true">
+        <option name="MAIN_CLASS_NAME" value="org.example.Main"/>
+        <module name="Project"/>
+        <option name="PROGRAM_PARAMETERS" value="127.0.0.1 5000 127.0.0.1 5004 5005 5006 mitza"/>
+        <extension name="coverage">
+            <pattern>
+                <option name="PATTERN" value="org.example.*"/>
+                <option name="ENABLED" value="true"/>
+            </pattern>
+        </extension>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
+</component>
